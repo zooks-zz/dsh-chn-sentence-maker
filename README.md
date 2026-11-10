@@ -11,9 +11,5 @@
 
 ---
 
-```
-git remote add origin https://github.com/zooks-zz/dsh-chn-sentence-maker.git
-git branch -M main
-git push -u origin main
-```
+https://github.com/zooks-zz/dsh-chn-sentence-maker.git
 
