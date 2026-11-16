@@ -40,7 +40,7 @@
    - 逐行处理；跳过空行和以 `#` 开头的行。
    - 取**第一个空白符（空格/Tab）**切分：左边是 `word`，右边整段是 `note`（可空）。
    - `word` 非空才计入。
-2. 校验：词数 > 50 → **停止并报告**「超过 50 词上限」，不调用任何 agent。
+2. 校验：词数 > 60 → **停止并报告**「超过 60 词上限」，不调用任何 agent。
 3. 读 history.md → 全量句子数组（逐行；去掉行尾 `\r` 和首尾空白；空行忽略）。
 4. 读 prompts/generator.md 全文 → 记作 `generatorPrompt`。
 5. 读 prompts/reviewer.md 全文 → 记作 `reviewerPrompt`。
