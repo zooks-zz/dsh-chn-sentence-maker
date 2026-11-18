@@ -1,10 +1,11 @@
-// workflow.js —— 单轮工作流：生成 → 内存精确去重 → 审核
-// 由主 Agent 读入本文件内容后，作为 workflow 工具的 script 传入；
-// 主 Agent 每次调用另传 meta（见 README.md）。
+// workflow.js —— 单轮工作流：生成 → 批内去重 → 审核
+// 由主 Agent 读入本文件内容后，作为 workflow 工具的 script 传入。
+//
+// 重要：本脚本【不再接收 history，也不做历史去重】。
+// 历史去重与文件落盘统一由本地脚本 commit.js 完成（history 永不进入大模型）。
 //
 // args = {
 //   words:            [{ word, note }],   // 本轮待处理词（未完成词）
-//   history:          [string],           // 全量历史句子（精确去重用，已去行尾换行）
 //   generatorPrompt:  string,             // prompts/generator.md 原文（规则+输出契约，不含词表）
 //   reviewerPrompt:   string              // prompts/reviewer.md 原文（规则+输出契约，不含候选句）
 // }
@@ -53,7 +54,7 @@ const REV_SCHEMA = {
 const words = Array.isArray(args.words) ? args.words : [];
 const wordNote = new Map(words.map((w) => [String(w.word), String(w.note || "")]));
 const validWords = new Set(wordNote.keys());
-const seen = new Set((Array.isArray(args.history) ? args.history : []).map((s) => String(s).trim()));
+const seen = new Set(); // 仅批内去重
 
 // 1. 生成
 const genInput = [
@@ -68,7 +69,7 @@ if (!gen || !Array.isArray(gen.sentences)) {
   return { ok: false, error: "generator_failed", fresh: [], verdicts: [] };
 }
 
-// 2. 内存精确去重（对历史全集 + 批内）
+// 2. 批内精确去重（不含历史；历史去重交给 commit.js）
 const fresh = [];
 for (const it of gen.sentences) {
   const word = String(it && it.word);
@@ -83,7 +84,7 @@ if (fresh.length === 0) {
   return { ok: true, fresh: [], verdicts: [] };
 }
 
-// 3. 审核（只审去重后的新句）
+// 3. 审核（只审批内去重后的新句）
 const candidateBlock = fresh
   .map((f, i) => `${i + 1}. 目标词「${f.word}」${f.note ? "（备注：" + f.note + "）" : ""}\n   例句：${f.sentence}`)
   .join("\n");
